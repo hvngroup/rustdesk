@@ -19,6 +19,10 @@ on:
 
 jobs:
   run-ci:
+    # flutter-build.yml has jobs that request contents: write; a caller cannot grant
+    # less, or the run fails at startup on repositories whose default token is read-only.
+    permissions:
+      contents: write
     uses: ./.github/workflows/flutter-build.yml
     with:
       upload-artifact: false
