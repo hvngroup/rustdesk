@@ -29,6 +29,8 @@ env:
   SCITER_NASM_DEBVERSION: "2.15.05-1"
   LLVM_VERSION: "15.0.6"
   FLUTTER_VERSION: "3.24.5"
+  # HVN Connect server public key (repository variable); empty until the server is deployed.
+  HVN_RS_PUB_KEY: ${{ vars.HVN_RS_PUB_KEY }}
   ANDROID_FLUTTER_VERSION: "3.24.5"
   # Windows arm64 only: the first stable Flutter to ship a native arm64 Windows Dart SDK +
   # engine is 3.44. Every other platform stays on FLUTTER_VERSION (3.24.5) until Windows 7
