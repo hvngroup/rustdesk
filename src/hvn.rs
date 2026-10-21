@@ -12,9 +12,20 @@ const RENDEZVOUS_SERVER: &str = match option_env!("HVN_RENDEZVOUS_SERVER") {
 /// exists once the server is deployed, so release builds pass it in.
 const RS_PUB_KEY: Option<&str> = option_env!("HVN_RS_PUB_KEY");
 
+/// RustDesk's macOS install, uninstall and update scripts put the app name
+/// into paths, launchd labels and process names unquoted, so the internal
+/// name has no spaces. Users see `DISPLAY_NAME`.
+const APP_NAME: &str = "HVNRemoteHub";
+const DISPLAY_NAME: &str = "HVN Remote Hub";
+
 /// Runs after `load_custom_client`, so HVN's server wins over any other
 /// configuration and the user cannot point the app elsewhere.
 pub fn apply() {
+    // Tests share one process, and other tests expect the stock app name.
+    #[cfg(all(target_os = "macos", not(test)))]
+    {
+        *config::APP_NAME.write().unwrap() = APP_NAME.to_owned();
+    }
     let mut settings = config::OVERWRITE_SETTINGS.write().unwrap();
     settings.insert(
         keys::OPTION_CUSTOM_RENDEZVOUS_SERVER.to_owned(),
@@ -22,6 +33,20 @@ pub fn apply() {
     );
     if let Some(key) = RS_PUB_KEY.filter(|key| !key.is_empty()) {
         settings.insert(keys::OPTION_KEY.to_owned(), key.to_owned());
+    }
+}
+
+/// The name shown to users. `get_app_name()` keeps the internal name, which
+/// paths, the URL scheme and the macOS scripts depend on.
+pub fn display_name() -> String {
+    display_name_of(crate::get_app_name())
+}
+
+fn display_name_of(app_name: String) -> String {
+    if app_name == APP_NAME {
+        DISPLAY_NAME.to_owned()
+    } else {
+        app_name
     }
 }
 
@@ -38,5 +63,11 @@ mod tests {
             RENDEZVOUS_SERVER
         );
         assert!(Config::get_rendezvous_server().starts_with(RENDEZVOUS_SERVER));
+    }
+
+    #[test]
+    fn users_see_hvn_remote_hub() {
+        assert_eq!(display_name_of(APP_NAME.to_owned()), "HVN Remote Hub");
+        assert_eq!(display_name_of("RustDesk".to_owned()), "RustDesk");
     }
 }
