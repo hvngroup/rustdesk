@@ -2073,8 +2073,8 @@ jobs:
             esac
             HBB=`pwd` rpmbuild ./res/rpm-flutter.spec -bb
             pushd ~/rpmbuild/RPMS/${{ matrix.job.arch }}
-            for name in rustdesk*??.rpm; do
-                mv "$name" /workspace/"${name%%.rpm}.rpm"
+            for name in hvnremotehub*??.rpm; do
+                mv "$name" /workspace/"rustdesk${name#hvnremotehub}"
             done
 
             # rpm suse package
@@ -2087,8 +2087,9 @@ jobs:
             esac
             HBB=`pwd` rpmbuild ./res/rpm-flutter-suse.spec -bb
             pushd ~/rpmbuild/RPMS/${{ matrix.job.arch }}
-            for name in rustdesk*??.rpm; do
-                mv "$name" /workspace/"${name%%.rpm}-suse.rpm"
+            for name in hvnremotehub*??.rpm; do
+                name2="rustdesk${name#hvnremotehub}"
+                mv "$name" /workspace/"${name2%%.rpm}-suse.rpm"
             done
 
       - name: Publish debian/rpm package
@@ -2126,6 +2127,7 @@ jobs:
           packages:
           scripts: |
             cd res && HBB=`pwd`/.. FLUTTER=1 makepkg -f
+            for name in hvnremotehub-*.pkg.tar.zst; do mv "$name" "rustdesk${name#hvnremotehub}"; done
 
       - name: Publish archlinux package
         if: matrix.job.arch == 'x86_64' && env.UPLOAD_ARTIFACT == 'true'
