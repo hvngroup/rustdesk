@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=HVN Remote Hub
+NoDisplay=true
+MimeType=x-scheme-handler/hvnremotehub;
+TryExec=hvnremotehub
+Exec=hvnremotehub %u
+Icon=hvnremotehub
+Terminal=false
+Type=Application
+StartupNotify=false
+StartupWMClass=hvnremotehub

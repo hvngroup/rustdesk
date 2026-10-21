@@ -1,7 +1,7 @@
-Name:       rustdesk
+Name:       hvnremotehub
 Version:    1.1.9
 Release:    0
-Summary:    RPM package
+Summary:    HVN Remote Hub
 License:    GPL-3.0
 Requires:   gtk3 libxcb1 libXfixes3 alsa-utils libXtst6 libva2 gstreamer-plugins-base gstreamer-plugin-pipewire
 Recommends: libayatana-appindicator3-1 xdotool
@@ -9,7 +9,7 @@ Recommends: libayatana-appindicator3-1 xdotool
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/
 
 %description
-The best open-source remote desktop client software, written in Rust.
+HVN Remote Hub, the remote desktop client of HVN GROUP, based on RustDesk.
 
 %prep
 # we have no source, so nothing here
@@ -21,26 +21,26 @@ The best open-source remote desktop client software, written in Rust.
 
 %install
 mkdir -p %{buildroot}/usr/bin/
-mkdir -p %{buildroot}/usr/share/rustdesk/
-mkdir -p %{buildroot}/usr/share/rustdesk/files/
+mkdir -p %{buildroot}/usr/share/hvnremotehub/
+mkdir -p %{buildroot}/usr/share/hvnremotehub/files/
 mkdir -p %{buildroot}/usr/share/icons/hicolor/256x256/apps/
 mkdir -p %{buildroot}/usr/share/icons/hicolor/scalable/apps/
-install -m 755 $HBB/target/release/rustdesk %{buildroot}/usr/bin/rustdesk
-install $HBB/libsciter-gtk.so %{buildroot}/usr/share/rustdesk/libsciter-gtk.so
-install $HBB/res/rustdesk.service %{buildroot}/usr/share/rustdesk/files/
-install $HBB/res/128x128@2x.png %{buildroot}/usr/share/icons/hicolor/256x256/apps/rustdesk.png
-install $HBB/res/scalable.svg %{buildroot}/usr/share/icons/hicolor/scalable/apps/rustdesk.svg
-install $HBB/res/rustdesk.desktop %{buildroot}/usr/share/rustdesk/files/
-install $HBB/res/rustdesk-link.desktop %{buildroot}/usr/share/rustdesk/files/
+install -m 755 $HBB/target/release/rustdesk %{buildroot}/usr/bin/hvnremotehub
+install $HBB/libsciter-gtk.so %{buildroot}/usr/share/hvnremotehub/libsciter-gtk.so
+install $HBB/res/hvnremotehub.service %{buildroot}/usr/share/hvnremotehub/files/
+install $HBB/res/128x128@2x.png %{buildroot}/usr/share/icons/hicolor/256x256/apps/hvnremotehub.png
+install $HBB/res/scalable.svg %{buildroot}/usr/share/icons/hicolor/scalable/apps/hvnremotehub.svg
+install $HBB/res/hvnremotehub.desktop %{buildroot}/usr/share/hvnremotehub/files/
+install $HBB/res/hvnremotehub-link.desktop %{buildroot}/usr/share/hvnremotehub/files/
 
 %files
-/usr/bin/rustdesk
-/usr/share/rustdesk/libsciter-gtk.so
-/usr/share/rustdesk/files/rustdesk.service
-/usr/share/icons/hicolor/256x256/apps/rustdesk.png
-/usr/share/icons/hicolor/scalable/apps/rustdesk.svg
-/usr/share/rustdesk/files/rustdesk.desktop
-/usr/share/rustdesk/files/rustdesk-link.desktop
+/usr/bin/hvnremotehub
+/usr/share/hvnremotehub/libsciter-gtk.so
+/usr/share/hvnremotehub/files/hvnremotehub.service
+/usr/share/icons/hicolor/256x256/apps/hvnremotehub.png
+/usr/share/icons/hicolor/scalable/apps/hvnremotehub.svg
+/usr/share/hvnremotehub/files/hvnremotehub.desktop
+/usr/share/hvnremotehub/files/hvnremotehub-link.desktop
 
 %changelog
 # let's skip this for now
@@ -53,26 +53,26 @@ case "$1" in
   ;;
   2)
     # for upgrade
-    systemctl stop rustdesk || true
+    systemctl stop hvnremotehub || true
   ;;
 esac
 
 %post
-cp /usr/share/rustdesk/files/rustdesk.service /etc/systemd/system/rustdesk.service
-cp /usr/share/rustdesk/files/rustdesk.desktop /usr/share/applications/
-cp /usr/share/rustdesk/files/rustdesk-link.desktop /usr/share/applications/
+cp /usr/share/hvnremotehub/files/hvnremotehub.service /etc/systemd/system/hvnremotehub.service
+cp /usr/share/hvnremotehub/files/hvnremotehub.desktop /usr/share/applications/
+cp /usr/share/hvnremotehub/files/hvnremotehub-link.desktop /usr/share/applications/
 systemctl daemon-reload
-systemctl enable rustdesk
-systemctl start rustdesk
+systemctl enable hvnremotehub
+systemctl start hvnremotehub
 update-desktop-database
 
 %preun
 case "$1" in
   0)
     # for uninstall
-    systemctl stop rustdesk || true
-    systemctl disable rustdesk || true
-    rm /etc/systemd/system/rustdesk.service || true
+    systemctl stop hvnremotehub || true
+    systemctl disable hvnremotehub || true
+    rm /etc/systemd/system/hvnremotehub.service || true
   ;;
   1)
     # for upgrade
@@ -83,8 +83,8 @@ esac
 case "$1" in
   0)
     # for uninstall
-    rm /usr/share/applications/rustdesk.desktop || true
-    rm /usr/share/applications/rustdesk-link.desktop || true
+    rm /usr/share/applications/hvnremotehub.desktop || true
+    rm /usr/share/applications/hvnremotehub-link.desktop || true
     update-desktop-database
   ;;
   1)

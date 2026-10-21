@@ -1,19 +1,22 @@
 [Desktop Entry]
-Name=RustDesk
+Name=HVN Remote Hub
 GenericName=Remote Desktop
+GenericName[vi]=Điều khiển từ xa
 Comment=Remote Desktop
-Exec=rustdesk %u
-Icon=rustdesk
+Comment[vi]=Điều khiển máy tính từ xa
+Exec=hvnremotehub %u
+Icon=hvnremotehub
 Terminal=false
 Type=Application
 StartupNotify=true
 Categories=Network;RemoteAccess;GTK;
 Keywords=internet;linux;dart;rust;remote-control;p2p;teamviewer;rust-lang;rdp;remote-desktop;vnc;
 Actions=new-window;
-StartupWMClass=rustdesk
+StartupWMClass=hvnremotehub
 
 X-Desktop-File-Install-Version=0.23
 
 [Desktop Action new-window]
 Name=Open a New Window
-Exec=rustdesk %u
+Name[vi]=Mở cửa sổ mới
+Exec=hvnremotehub %u
