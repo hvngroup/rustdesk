@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hbb/models/file_model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:get/get.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
@@ -211,7 +212,8 @@ class _FileManagerPageState extends State<FileManagerPage> {
       showToast(translate('Failed'));
       return;
     }
-    final appDir = PathUtil.join(home, appName, false);
+    final appDir =
+        PathUtil.join(home, bind.mainGetAppNameInternalSync(), false);
     final paths = [
       PathUtil.join(appDir, 'Logs', false),
       PathUtil.join(appDir, 'ScreenRecord', false),

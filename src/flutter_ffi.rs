@@ -1131,6 +1131,12 @@ pub fn main_get_app_name_sync() -> SyncReturn<String> {
     SyncReturn(get_app_name())
 }
 
+/// The internal name that paths and the printer are named after; the two
+/// functions above return the name users see, which may differ.
+pub fn main_get_app_name_internal_sync() -> SyncReturn<String> {
+    SyncReturn(crate::get_app_name())
+}
+
 pub fn main_uri_prefix_sync() -> SyncReturn<String> {
     SyncReturn(crate::get_uri_prefix())
 }
@@ -2698,7 +2704,7 @@ pub fn main_get_common(key: String) -> String {
     if key == "is-printer-installed" {
         #[cfg(target_os = "windows")]
         {
-            return match remote_printer::is_rd_printer_installed(&get_app_name()) {
+            return match remote_printer::is_rd_printer_installed(&crate::get_app_name()) {
                 Ok(r) => r.to_string(),
                 Err(e) => e.to_string(),
             };
@@ -2797,7 +2803,7 @@ pub fn main_set_common(_key: String, _value: String) {
     #[cfg(target_os = "windows")]
     if _key == "install-printer" && crate::platform::is_win_10_or_greater() {
         std::thread::spawn(move || {
-            let (success, msg) = match remote_printer::install_update_printer(&get_app_name()) {
+            let (success, msg) = match remote_printer::install_update_printer(&crate::get_app_name()) {
                 Ok(_) => (true, "".to_owned()),
                 Err(e) => {
                     let err = e.to_string();
