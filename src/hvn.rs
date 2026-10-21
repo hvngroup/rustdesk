@@ -25,7 +25,7 @@ const LANGUAGE: &str = "vi";
 /// configuration and the user cannot point the app elsewhere.
 pub fn apply() {
     // Tests share one process, and other tests expect the stock app name.
-    #[cfg(all(any(target_os = "macos", windows), not(test)))]
+    #[cfg(all(any(target_os = "macos", windows, target_os = "android"), not(test)))]
     {
         *config::APP_NAME.write().unwrap() = APP_NAME.to_owned();
     }
