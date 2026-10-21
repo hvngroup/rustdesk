@@ -35,7 +35,7 @@ g_arpsystemcomponent = {
     },
     "ReadMe": {
         "msi": "ARPREADME",
-        "v": "https://github.com/hvngroup/rustdesk",
+        "v": "https://github.com/hvngroup/universal-remote-hub",
     },
 }
 

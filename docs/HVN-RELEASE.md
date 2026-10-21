@@ -1,6 +1,6 @@
 # Phát hành HVN Remote Hub
 
-Bản HVN Remote Hub được phát hành qua [GitHub Releases của hvngroup/rustdesk](https://github.com/hvngroup/rustdesk/releases).
+Bản HVN Remote Hub được phát hành qua [GitHub Releases của hvngroup/universal-remote-hub](https://github.com/hvngroup/universal-remote-hub/releases).
 Workflow `Flutter Tag Build` (`.github/workflows/flutter-tag.yml`) build mọi nền tảng và tự đính file vào Release khi có tag mới.
 
 ## Cách ra một bản
@@ -9,6 +9,7 @@ Workflow `Flutter Tag Build` (`.github/workflows/flutter-tag.yml`) build mọi n
    Đây là phiên bản RustDesk mà bản fork dựa trên. Máy hai đầu dùng số này để biết bên kia hỗ trợ tính năng nào, nên không đổi tuỳ ý.
 2. Đặt tag theo dạng `v<phiên bản>-<số bản HVN>`, ví dụ `v1.5.1-1`, rồi `v1.5.1-2` cho lần build lại trên cùng phiên bản đó.
    Workflow chỉ nhận các dạng `1.5.1`, `v1.5.1`, `1.5.1-1` và `v1.5.1-1`.
+   Tag `mac-vX.Y.Z` thuộc về app Mac 1.x (Swift) trong `macos-native/`, xem [macos-native/docs/release.md](../macos-native/docs/release.md).
 3. Tạo Release trên GitHub với tag mới, target `master`. Workflow sẽ chạy khoảng 1 giờ rồi đính các file vào Release.
 4. Workflow đánh dấu Release là *Pre-release*. Sau khi kiểm tra file cài trên máy thật, bỏ dấu Pre-release để thành bản chính thức.
 
