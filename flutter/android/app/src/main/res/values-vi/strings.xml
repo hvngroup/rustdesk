@@ -1,0 +1,4 @@
+<resources>
+    <string name="input_service_label">Điều khiển HVN Remote Hub</string>
+    <string name="accessibility_service_description">Cho phép thiết bị khác điều khiển điện thoại của bạn bằng thao tác chạm ảo khi đang chia sẻ màn hình qua HVN Remote Hub</string>
+</resources>

@@ -873,6 +873,10 @@ class RustdeskImpl {
     return js.context.callMethod('getByName', ['app-name']);
   }
 
+  String mainGetAppNameInternalSync({dynamic hint}) {
+    return mainGetAppNameSync(hint: hint);
+  }
+
   String mainUriPrefixSync({dynamic hint}) {
     throw UnimplementedError("mainUriPrefixSync");
   }

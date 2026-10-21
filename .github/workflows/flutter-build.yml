@@ -420,7 +420,7 @@ jobs:
         if: env.UPLOAD_ARTIFACT == 'true' && env.PUBLISH_UPDATE_METADATA == 'true'
         shell: powershell
         run: |
-          $reportedVersion = (& ".\rustdesk\rustdesk.exe" --version | Out-String).Trim()
+          $reportedVersion = (& ".\rustdesk\HVNRemoteHub.exe" --version | Out-String).Trim()
           if ($LASTEXITCODE -ne 0) {
             throw "rustdesk --version exited with $LASTEXITCODE"
           }
@@ -435,7 +435,7 @@ jobs:
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
+          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/HVNRemoteHub.exe
           popd
           mkdir -p ./SignOutput
           mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.exe
@@ -456,7 +456,7 @@ jobs:
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
           pushd ./res/msi
-          python preprocess.py --arp -d ../../rustdesk
+          python preprocess.py --arp -d ../../rustdesk --app-name HVNRemoteHub --manufacturer "HVN GROUP"
           nuget restore msi.sln
           $msiPlatform = if ('${{ matrix.job.arch }}' -eq 'aarch64') { 'ARM64' } else { 'x64' }
           msbuild msi.sln -p:Configuration=Release -p:Platform=$msiPlatform /p:TargetVersion=Windows10
@@ -486,7 +486,7 @@ jobs:
         run: |
           git checkout -- res/msi
           cp -r ./rustdesk ./rustdesk-msi-template
-          mv ./rustdesk-msi-template/rustdesk.exe ./rustdesk-msi-template/RDAPPNAM.exe
+          mv ./rustdesk-msi-template/HVNRemoteHub.exe ./rustdesk-msi-template/RDAPPNAM.exe
           Set-Content -Path ./rustdesk-msi-template/custom.txt -Value 'placeholder' -NoNewline
           $assets = './rustdesk-msi-template/data/flutter_assets/assets'
           New-Item -ItemType Directory -Force -Path $assets | Out-Null
@@ -2073,8 +2073,8 @@ jobs:
             esac
             HBB=`pwd` rpmbuild ./res/rpm-flutter.spec -bb
             pushd ~/rpmbuild/RPMS/${{ matrix.job.arch }}
-            for name in rustdesk*??.rpm; do
-                mv "$name" /workspace/"${name%%.rpm}.rpm"
+            for name in hvnremotehub*??.rpm; do
+                mv "$name" /workspace/"rustdesk${name#hvnremotehub}"
             done
 
             # rpm suse package
@@ -2087,8 +2087,9 @@ jobs:
             esac
             HBB=`pwd` rpmbuild ./res/rpm-flutter-suse.spec -bb
             pushd ~/rpmbuild/RPMS/${{ matrix.job.arch }}
-            for name in rustdesk*??.rpm; do
-                mv "$name" /workspace/"${name%%.rpm}-suse.rpm"
+            for name in hvnremotehub*??.rpm; do
+                name2="rustdesk${name#hvnremotehub}"
+                mv "$name" /workspace/"${name2%%.rpm}-suse.rpm"
             done
 
       - name: Publish debian/rpm package
@@ -2126,6 +2127,7 @@ jobs:
           packages:
           scripts: |
             cd res && HBB=`pwd`/.. FLUTTER=1 makepkg -f
+            for name in hvnremotehub-*.pkg.tar.zst; do mv "$name" "rustdesk${name#hvnremotehub}"; done
 
       - name: Publish archlinux package
         if: matrix.job.arch == 'x86_64' && env.UPLOAD_ARTIFACT == 'true'
@@ -2138,7 +2140,7 @@ jobs:
 
   # Same build as build-rustdesk-linux x86_64 -- same vcpkg/ffmpeg, same ubuntu18.04 container, same
   # rust and flutter -- only with the drm feature on, so it ships as the separate
-  # rustdesk-unattended-wayland deb. libdrmtap is built on the runner because bionic's meson is too
+  # hvnremotehub-unattended-wayland deb. libdrmtap is built on the runner because bionic's meson is too
   # old for it. A separate job rather than a matrix entry of build-rustdesk-linux: appimage and
   # flatpak need that job, and a failure here must not skip them.
   build-rustdesk-linux-drm:
@@ -2406,7 +2408,7 @@ jobs:
             export CARGO_INCREMENTAL=0
             export DEB_ARCH=amd64
             python3 ./build.py --flutter --drm --hwcodec --unix-file-copy-paste --skip-cargo
-            for name in rustdesk*??.deb; do
+            for name in hvnremotehub*??.deb; do
               mv "$name" "${name%%.deb}-x86_64.deb"
             done
 
@@ -2419,24 +2421,24 @@ jobs:
           # Resolve by glob, not from env.VERSION: build.py names the deb from Cargo.toml, so a
           # hardcoded name fails with a bare exit 1 the first time those two drift.
           shopt -s nullglob
-          debs=(rustdesk-unattended-wayland-*-x86_64.deb)
+          debs=(hvnremotehub-unattended-wayland-*-x86_64.deb)
           if [ "${#debs[@]}" -ne 1 ]; then
-            echo "::error::expected one rustdesk-unattended-wayland-*-x86_64.deb, found ${#debs[@]}: ${debs[*]-none}"
+            echo "::error::expected one hvnremotehub-unattended-wayland-*-x86_64.deb, found ${#debs[@]}: ${debs[*]-none}"
             exit 1
           fi
           deb="${debs[0]}"
           echo "DRM_DEB=$deb" >> "$GITHUB_ENV"
           contents="$(dpkg -c "$deb")"
-          if [[ ! "$contents" =~ usr/lib/rustdesk/libdrmtap\.so\.0\.[0-9]+\.[0-9]+ ]]; then
+          if [[ ! "$contents" =~ usr/lib/hvnremotehub/libdrmtap\.so\.0\.[0-9]+\.[0-9]+ ]]; then
             echo "::error::$deb has no versioned libdrmtap.so.0.x.y"
             exit 1
           fi
-          if [[ "$contents" != *"usr/lib/rustdesk/libdrmtap.so.0 ->"* ]]; then
+          if [[ "$contents" != *"usr/lib/hvnremotehub/libdrmtap.so.0 ->"* ]]; then
             echo "::error::$deb has no libdrmtap.so.0 soname symlink"
             exit 1
           fi
           rm -rf /tmp/deb && dpkg-deb -R "$deb" /tmp/deb
-          if ! grep -qF /usr/lib/rustdesk/libdrmtap.so.0 /tmp/deb/usr/share/rustdesk/lib/librustdesk.so; then
+          if ! grep -qF /usr/lib/hvnremotehub/libdrmtap.so.0 /tmp/deb/usr/share/hvnremotehub/lib/librustdesk.so; then
             echo "::error::$deb was not built with the drm feature"
             exit 1
           fi
@@ -2830,8 +2832,8 @@ jobs:
             # package
             pushd flatpak
             git clone https://github.com/flathub/shared-modules.git --depth=1
-            flatpak-builder --user --install-deps-from=flathub -y --force-clean --repo=repo ./build ./rustdesk.json
-            flatpak build-bundle ./repo rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak com.rustdesk.RustDesk
+            flatpak-builder --user --install-deps-from=flathub -y --force-clean --repo=repo ./build ./hvnremotehub.json
+            flatpak build-bundle ./repo rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak vn.hvn.remotehub
 
       - name: Publish flatpak package
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>vn.hvn.remotehub</id>
+  <developer id="vn.hvn">
+    <name>HVN GROUP</name>
+  </developer>
+  <launchable type="desktop-id">vn.hvn.remotehub.desktop</launchable>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-only</project_license>
+  <name>HVN Remote Hub</name>
+  <summary>Secure remote desktop access by HVN GROUP</summary>
+  <description>
+    <p>
+        HVN Remote Hub is the remote desktop client of HVN GROUP. It connects through HVN Connect,
+        HVN GROUP's own ID and relay server, with end-to-end encryption.
+    </p>
+    <p>
+        HVN Remote Hub is based on RustDesk and is free software under the AGPL-3.0 license.
+    </p>
+  </description>
+  <categories>
+    <category>Utility</category>
+  </categories>
+  <branding>
+    <color type="primary" scheme_preference="light">#FDECEC</color>
+    <color type="primary" scheme_preference="dark">#C93939</color>
+  </branding>
+  <url type="homepage">https://hvn.vn</url>
+  <url type="bugtracker">https://github.com/hvngroup/rustdesk/issues</url>
+  <url type="vcs-browser">https://github.com/hvngroup/rustdesk</url>
+  <url type="contact">mailto:kythuat@hvn.vn</url>
+  <requires>
+    <display_length compare="ge">600</display_length>
+    <internet>always</internet>
+  </requires>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </supports>
+  <content_rating type="oars-1.1"/>
+</component>

@@ -18,14 +18,22 @@ const RS_PUB_KEY: Option<&str> = option_env!("HVN_RS_PUB_KEY");
 const APP_NAME: &str = "HVNRemoteHub";
 const DISPLAY_NAME: &str = "HVN Remote Hub";
 
+/// HVN Remote Hub speaks Vietnamese unless the user picks another language.
+const LANGUAGE: &str = "vi";
+
 /// Runs after `load_custom_client`, so HVN's server wins over any other
 /// configuration and the user cannot point the app elsewhere.
 pub fn apply() {
     // Tests share one process, and other tests expect the stock app name.
-    #[cfg(all(target_os = "macos", not(test)))]
+    #[cfg(not(test))]
     {
         *config::APP_NAME.write().unwrap() = APP_NAME.to_owned();
     }
+    // A default rather than an override: users can still pick another language.
+    config::DEFAULT_LOCAL_SETTINGS
+        .write()
+        .unwrap()
+        .insert(keys::OPTION_LANGUAGE.to_owned(), LANGUAGE.to_owned());
     let mut settings = config::OVERWRITE_SETTINGS.write().unwrap();
     settings.insert(
         keys::OPTION_CUSTOM_RENDEZVOUS_SERVER.to_owned(),
@@ -63,6 +71,15 @@ mod tests {
             RENDEZVOUS_SERVER
         );
         assert!(Config::get_rendezvous_server().starts_with(RENDEZVOUS_SERVER));
+    }
+
+    #[test]
+    fn vietnamese_is_the_default_language() {
+        apply();
+        assert_eq!(
+            crate::lang::translate_locale("Settings".to_owned(), "en-US"),
+            "Cài đặt"
+        );
     }
 
     #[test]
