@@ -1,0 +1,22 @@
+name: Đề xuất tính năng
+description: Ý tưởng làm app tốt hơn
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Vấn đề cần giải quyết
+      description: Anh/chị đang gặp khó khăn gì khi hỗ trợ hoặc điều khiển từ xa?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Đề xuất
+      description: App nên làm gì?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Cách khác đã cân nhắc

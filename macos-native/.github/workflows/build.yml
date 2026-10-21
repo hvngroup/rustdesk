@@ -1,0 +1,227 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # HVN GROUP's Apple Developer Team ID. Not secret: Apple prints it in every signature.
+  APPLE_TEAM_ID: TVZNQ5W8NG
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Catalogs & scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Vietnamese and English catalogs match
+        run: python3 scripts/check-localizations.py
+      - name: Shell scripts parse
+        run: for script in scripts/*.sh; do bash -n "$script"; done
+      - name: Release notes exist for the current version
+        run: |
+          . ./version.conf
+          if ! scripts/release-notes.sh "$APP_VERSION" > /dev/null 2>&1; then
+            echo "::notice::CHANGELOG.md has no [$APP_VERSION] section yet; a release tag would be rejected."
+          fi
+
+  app:
+    name: Test, package & verify
+    needs: checks
+    runs-on: macos-26
+    # Two notarizations of up to 90 minutes each, plus the build.
+    timeout-minutes: 210
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Toolchain
+        run: |
+          sw_vers
+          swift --version
+
+      - name: Version
+        run: |
+          . ./version.conf
+          echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
+          echo "ASSET=HVNRemoteHub-$APP_VERSION" >> "$GITHUB_ENV"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            if [ "${GITHUB_REF_NAME#v}" != "$APP_VERSION" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME does not match APP_VERSION $APP_VERSION in version.conf" >&2
+              exit 1
+            fi
+            scripts/release-notes.sh "$APP_VERSION" > "$RUNNER_TEMP/notes.md"
+          fi
+
+      - name: Cache SwiftPM build
+        uses: actions/cache@v6
+        with:
+          path: .build
+          key: spm-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-${{ github.sha }}
+          restore-keys: |
+            spm-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-
+            spm-${{ runner.os }}-
+
+      - name: Unit tests
+        run: swift test --parallel
+
+      - name: Package universal app
+        env:
+          HVN_SIGNING_IDENTITY: "-"
+          HVN_UNIVERSAL: "1"
+        run: scripts/package-app.sh release
+
+      - name: Import Developer ID certificate
+        id: cert
+        # A manual run rehearses signing and notarization without publishing anything.
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          if [ -z "$MACOS_CERTIFICATE_P12" ]; then
+            echo "::notice::No Developer ID certificate configured; the release stays ad-hoc signed."
+            echo "identity=-" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          keychain_password="$(uuidgen)"
+          echo "$MACOS_CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/cert.p12" -k "$keychain" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain"
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/cert.p12"
+          identity="$(security find-identity -v -p codesigning "$keychain" \
+            | awk -v team="($APPLE_TEAM_ID)" '/Developer ID Application/ && index($0, team) {print $2; exit}')"
+          if [ -z "$identity" ]; then
+            echo "::error::No 'Developer ID Application' identity for team $APPLE_TEAM_ID in the certificate." >&2
+            exit 1
+          fi
+          echo "identity=$identity" >> "$GITHUB_OUTPUT"
+
+      - name: Sign with Developer ID (hardened runtime)
+        if: steps.cert.outputs.identity != '' && steps.cert.outputs.identity != '-'
+        run: |
+          codesign --force --options runtime --timestamp \
+            --sign "${{ steps.cert.outputs.identity }}" "release/HVN Remote Hub.app"
+          codesign --verify --deep --strict --verbose=2 "release/HVN Remote Hub.app"
+          codesign -dv "release/HVN Remote Hub.app" 2>&1 | grep -qx "TeamIdentifier=$APPLE_TEAM_ID"
+
+      - name: Configure notarization
+        id: notary
+        if: steps.cert.outputs.identity != '' && steps.cert.outputs.identity != '-'
+        env:
+          APPSTORE_API_KEY_P8: ${{ secrets.APPSTORE_API_KEY_P8 }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          # Prefer an App Store Connect API key; fall back to Apple ID + app-specific password.
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          if [ -n "$APPSTORE_API_KEY_P8" ] && [ -n "$APPSTORE_API_KEY_ID" ] && [ -n "$APPSTORE_API_ISSUER_ID" ]; then
+            key_path="$RUNNER_TEMP/AuthKey_${APPSTORE_API_KEY_ID}.p8"
+            # Accept the .p8 file's text or its base64 (as for the .p12), and rebuild the
+            # PEM so CRLF, lost line breaks or literal "\n" from pasting do not break it.
+            key="$APPSTORE_API_KEY_P8"
+            case "$key" in
+              *"BEGIN PRIVATE KEY"*) ;;
+              *) key=$(printf '%s' "$key" | tr -d ' \r\n' | base64 -D 2>/dev/null || true) ;;
+            esac
+            body=$(printf '%s' "$key" | sed -e 's/\\n/ /g' -e 's/-----[A-Z ]*PRIVATE KEY-----//g' | tr -d ' \t\r\n')
+            if [ -z "$body" ] || ! printf '%s' "$body" | base64 -D >/dev/null 2>&1; then
+              echo "::error::APPSTORE_API_KEY_P8 is neither the text of AuthKey_<KEY_ID>.p8 (from -----BEGIN PRIVATE KEY----- to -----END PRIVATE KEY-----) nor its base64." >&2
+              exit 1
+            fi
+            { echo "-----BEGIN PRIVATE KEY-----"; printf '%s\n' "$body" | fold -w 64; echo "-----END PRIVATE KEY-----"; } > "$key_path"
+            xcrun notarytool store-credentials hvn-notary --keychain "$keychain" \
+              --key "$key_path" --key-id "$APPSTORE_API_KEY_ID" --issuer "$APPSTORE_API_ISSUER_ID"
+            rm -f "$key_path"
+          elif [ -n "$APPLE_ID" ] && [ -n "$APPLE_APP_PASSWORD" ]; then
+            xcrun notarytool store-credentials hvn-notary --keychain "$keychain" \
+              --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID"
+          else
+            # Gatekeeper blocks a downloaded app that is signed but not notarized, so a
+            # Developer ID build without notarization would be worse than an ad-hoc one.
+            echo "::error::A Developer ID certificate is set but the notarization secrets are missing." >&2
+            exit 1
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+
+      - name: Notarize app
+        if: steps.notary.outputs.enabled == 'true'
+        run: |
+          ditto -c -k --keepParent "release/HVN Remote Hub.app" "$RUNNER_TEMP/notarize.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" --keychain-profile hvn-notary \
+            --keychain "$RUNNER_TEMP/signing.keychain-db" --wait --timeout 90m
+          xcrun stapler staple "release/HVN Remote Hub.app"
+          xcrun stapler validate "release/HVN Remote Hub.app"
+          spctl --assess --type execute --verbose=2 "release/HVN Remote Hub.app"
+
+      - name: Verify bundle
+        run: scripts/verify-bundle.sh "release/HVN Remote Hub.app" arm64 x86_64
+
+      - name: Disk image, zip and checksums
+        env:
+          IDENTITY: ${{ steps.cert.outputs.identity }}
+          NOTARIZED: ${{ steps.notary.outputs.enabled }}
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent "release/HVN Remote Hub.app" "release/$ASSET.zip"
+          scripts/make-dmg.sh "release/HVN Remote Hub.app" "release/$ASSET.dmg"
+          if [ -n "$IDENTITY" ] && [ "$IDENTITY" != "-" ]; then
+            codesign --force --timestamp --sign "$IDENTITY" "release/$ASSET.dmg"
+            if [ "$NOTARIZED" = "true" ]; then
+              xcrun notarytool submit "release/$ASSET.dmg" --keychain-profile hvn-notary \
+                --keychain "$RUNNER_TEMP/signing.keychain-db" --wait --timeout 90m
+              xcrun stapler staple "release/$ASSET.dmg"
+              spctl --assess --type open --context context:primary-signature --verbose=2 "release/$ASSET.dmg"
+            fi
+          fi
+          cd release
+          for file in "$ASSET.zip" "$ASSET.dmg"; do shasum -a 256 "$file" > "$file.sha256"; done
+          shasum -a 256 "$ASSET.zip" "$ASSET.dmg" > SHA256SUMS.txt
+          ls -la
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ASSET }}
+          path: |
+            release/${{ env.ASSET }}.dmg
+            release/${{ env.ASSET }}.zip
+            release/*.sha256
+            release/SHA256SUMS.txt
+          retention-days: 14
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          body_path: ${{ runner.temp }}/notes.md
+          files: |
+            release/${{ env.ASSET }}.dmg
+            release/${{ env.ASSET }}.zip
+            release/*.sha256
+            release/SHA256SUMS.txt
+
+      - name: Remove signing keychain
+        if: always() && steps.cert.outputs.identity != '' && steps.cert.outputs.identity != '-'
+        run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true

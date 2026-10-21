@@ -1,0 +1,62 @@
+name: Báo lỗi
+description: Ứng dụng hoạt động không đúng như mong đợi
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cảm ơn anh/chị đã báo lỗi. **Không dán ID đối tác, mật khẩu, ảnh chụp màn hình có dữ liệu khách hàng hay thông tin nội bộ.**
+        Lỗ hổng bảo mật: gửi riêng theo [SECURITY.md](../blob/main/SECURITY.md), không mở issue công khai.
+  - type: textarea
+    id: what
+    attributes:
+      label: Chuyện gì đã xảy ra?
+      description: Và anh/chị mong đợi điều gì?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Các bước tái hiện
+      placeholder: |
+        1. Kết nối tới máy Windows (UltraViewer 6.x) ...
+        2. Bật Điều khiển, bấm ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Tính năng
+      options:
+        - Điều khiển máy khác
+        - Chia sẻ máy Mac này
+        - Chat / clipboard / âm thanh
+        - Chụp / quay màn hình
+        - Cập nhật / cài đặt
+        - Khác
+    validations:
+      required: true
+  - type: input
+    id: partner
+    attributes:
+      label: Máy đối tác
+      placeholder: "Windows 11, UltraViewer 6.6"
+  - type: input
+    id: version
+    attributes:
+      label: Phiên bản app
+      description: Xem ở menu HVN Remote Hub → Giới thiệu HVN Remote Hub.
+      placeholder: "1.0.0 (1)"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: Phiên bản macOS
+      placeholder: "macOS 15.5"
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Ảnh chụp màn hình hoặc thông tin khác

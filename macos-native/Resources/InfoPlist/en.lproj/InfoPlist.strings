@@ -1,0 +1,2 @@
+/* Privacy prompts macOS shows on behalf of HVN Remote Hub. */
+"NSLocalNetworkUsageDescription" = "HVN Remote Hub connects directly to computers on your local network when that is faster than the relay.";

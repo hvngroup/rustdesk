@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Báo lỗ hổng bảo mật
+    url: https://github.com/hvngroup/mac-ultra-viewer/security/advisories/new
+    about: Gửi riêng tư, không mở issue công khai.
+  - name: Hỗ trợ kỹ thuật HVN GROUP
+    url: https://hvn.vn
+    about: Email kythuat@hvn.vn · Hotline 024.9999.7777
