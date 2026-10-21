@@ -16,7 +16,7 @@ AppDir:
   path: ./AppDir
   app_info:
     id: hvnremotehub
-    name: rustdesk
+    name: HVNRemoteHub
     icon: hvnremotehub
     version: 1.5.1
     exec: usr/share/hvnremotehub/hvnremotehub
