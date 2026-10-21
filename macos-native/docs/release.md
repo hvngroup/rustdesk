@@ -7,7 +7,7 @@
      sánh cuối file;
    - `version.conf`: `APP_VERSION=X.Y.Z`, `APP_BUILD` tăng 1;
    - chạy thử `scripts/release-notes.sh X.Y.Z`.
-2. CI xanh → chủ sản phẩm merge vào `main`.
+2. CI xanh → chủ sản phẩm merge vào `master`.
 3. **Sau khi merge**, chủ sản phẩm tạo Release trên GitHub: *Releases → Draft a new release* → tag mới `mac-vX.Y.Z`,
    target **`master`**, để trống mô tả, không bấm "Generate release notes" → **Publish**. Tag `vX.Y.Z` (không có `mac-`)
    là của HVN Remote Hub 2.0, xem [docs/HVN-RELEASE.md](../../docs/HVN-RELEASE.md).
@@ -72,7 +72,7 @@ cất trong kho bí mật của HVN, xoá khỏi máy cá nhân sau khi thêm.
 | Chứng chỉ nhưng **thiếu** thông tin notarize | **Workflow dừng với lỗi.** App ký mà không notarize vẫn bị Gatekeeper chặn, nên không phát hành |
 | Chứng chỉ của team khác | Workflow dừng với lỗi |
 
-**Thử trước khi phát hành:** *Actions → Build → Run workflow* trên `main`. Lần chạy tay sẽ ký và notarize như bản phát hành
+**Thử trước khi phát hành:** *Actions → HVN Remote Hub for Mac (1.x) → Run workflow* trên `master`. Lần chạy tay sẽ ký và notarize như bản phát hành
 nhưng không đăng Release; tải artifact về Mac, mở thử, rồi chạy `spctl -a -vv "/Applications/HVN Remote Hub.app"` — kết
 quả phải là `accepted` và `source=Notarized Developer ID`.
 

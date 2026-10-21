@@ -1,10 +1,14 @@
-name: Build
+name: HVN Remote Hub for Mac (1.x)
 
+# The Swift app lives in macos-native/. Its releases are tagged mac-vX.Y.Z so
+# they never collide with HVN Remote Hub 2.0's vX.Y.Z-N tags.
 on:
   push:
-    branches: [main]
-    tags: ['v*']
+    branches: [master]
+    tags: ['mac-v*']
+    paths: ['macos-native/**', '.github/workflows/macos-native.yml']
   pull_request:
+    paths: ['macos-native/**', '.github/workflows/macos-native.yml']
   workflow_dispatch:
 
 env:
@@ -12,11 +16,15 @@ env:
   APPLE_TEAM_ID: TVZNQ5W8NG
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: macos-native-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    working-directory: macos-native
 
 jobs:
   checks:
@@ -61,8 +69,8 @@ jobs:
           . ./version.conf
           echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
           echo "ASSET=HVNRemoteHub-$APP_VERSION" >> "$GITHUB_ENV"
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            if [ "${GITHUB_REF_NAME#v}" != "$APP_VERSION" ]; then
+          if [[ "$GITHUB_REF" == refs/tags/mac-v* ]]; then
+            if [ "${GITHUB_REF_NAME#mac-v}" != "$APP_VERSION" ]; then
               echo "::error::Tag $GITHUB_REF_NAME does not match APP_VERSION $APP_VERSION in version.conf" >&2
               exit 1
             fi
@@ -72,10 +80,10 @@ jobs:
       - name: Cache SwiftPM build
         uses: actions/cache@v6
         with:
-          path: .build
-          key: spm-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-${{ github.sha }}
+          path: macos-native/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('macos-native/Package.swift', 'macos-native/Package.resolved') }}-${{ github.sha }}
           restore-keys: |
-            spm-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-
+            spm-${{ runner.os }}-${{ hashFiles('macos-native/Package.swift', 'macos-native/Package.resolved') }}-
             spm-${{ runner.os }}-
 
       - name: Unit tests
@@ -90,7 +98,7 @@ jobs:
       - name: Import Developer ID certificate
         id: cert
         # A manual run rehearses signing and notarization without publishing anything.
-        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        if: startsWith(github.ref, 'refs/tags/mac-v') || github.event_name == 'workflow_dispatch'
         env:
           MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
           MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
@@ -205,22 +213,25 @@ jobs:
         with:
           name: ${{ env.ASSET }}
           path: |
-            release/${{ env.ASSET }}.dmg
-            release/${{ env.ASSET }}.zip
-            release/*.sha256
-            release/SHA256SUMS.txt
+            macos-native/release/${{ env.ASSET }}.dmg
+            macos-native/release/${{ env.ASSET }}.zip
+            macos-native/release/*.sha256
+            macos-native/release/SHA256SUMS.txt
           retention-days: 14
 
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/mac-v')
         uses: softprops/action-gh-release@v3
         with:
+          name: HVN Remote Hub for Mac ${{ env.APP_VERSION }}
           body_path: ${{ runner.temp }}/notes.md
+          # The repository's "latest" release is HVN Remote Hub 2.0.
+          make_latest: false
           files: |
-            release/${{ env.ASSET }}.dmg
-            release/${{ env.ASSET }}.zip
-            release/*.sha256
-            release/SHA256SUMS.txt
+            macos-native/release/${{ env.ASSET }}.dmg
+            macos-native/release/${{ env.ASSET }}.zip
+            macos-native/release/*.sha256
+            macos-native/release/SHA256SUMS.txt
 
       - name: Remove signing keychain
         if: always() && steps.cert.outputs.identity != '' && steps.cert.outputs.identity != '-'

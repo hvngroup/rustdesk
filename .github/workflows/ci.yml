@@ -13,6 +13,8 @@ on:
     paths-ignore:
       - "docs/**"
       - "README.md"
+      - "macos-native/**"
+      - ".github/workflows/macos-native.yml"
   push:
     branches:
       - master
@@ -23,6 +25,7 @@ on:
       - "res/**"
       - "appimage/**"
       - "flatpak/**"
+      - "macos-native/**"
 
 jobs:
   # ensure_cargo_fmt:
