@@ -1,0 +1,50 @@
+# Build output
+/.build/
+/release/
+/dmg/
+*.dmg
+*.app.zip
+
+# Swift Package Manager / Xcode
+.swiftpm/
+/Packages/
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+*.xcuserstate
+
+# Signing material and secrets (ATTT HVN 01-01/11/2024: never commit)
+*.p12
+*.p8
+*.cer
+*.mobileprovision
+*.provisionprofile
+*.keychain
+*.keychain-db
+.env
+.env.*
+registration*.json
+*.multipart
+
+# Original UltraViewer binaries and reverse-engineering material stay local
+/UltraViewer/
+/analysis/
+/tools/
+
+# Node helpers (logo rendering)
+node_modules/
+
+# Python helpers
+__pycache__/
+*.py[cod]
+.venv/
+
+# Logs and editor / OS files
+*.log
+.DS_Store
+._*
+.vscode/
+.idea/
+*.swp
+*~

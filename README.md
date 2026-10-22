@@ -25,9 +25,9 @@ RustDesk welcomes contribution from everyone. See [CONTRIBUTING.md](docs/CONTRIB
 
 [**FAQ**](https://github.com/rustdesk/rustdesk/wiki/FAQ)
 
-[**BINARY DOWNLOAD**](https://github.com/rustdesk/rustdesk/releases)
+[**BINARY DOWNLOAD**](https://github.com/hvngroup/universal-remote-hub/releases) (HVN Remote Hub, see [docs/HVN-RELEASE.md](docs/HVN-RELEASE.md); project layout: [docs/HVN-STRUCTURE.md](docs/HVN-STRUCTURE.md))
 
-[**NIGHTLY BUILD**](https://github.com/rustdesk/rustdesk/releases/tag/nightly)
+[**NIGHTLY BUILD**](https://github.com/hvngroup/universal-remote-hub/releases/tag/nightly)
 
 [<img src="https://f-droid.org/badge/get-it-on.png"
     alt="Get it on F-Droid"

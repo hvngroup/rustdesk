@@ -1,5 +1,5 @@
 pkgname=hvnremotehub
-pkgver=1.5.1
+pkgver=2.0.0
 pkgrel=0
 epoch=
 pkgdesc="HVN Remote Hub, the remote desktop client of HVN GROUP, based on RustDesk"

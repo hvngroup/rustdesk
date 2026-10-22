@@ -1,0 +1,2 @@
+/* Lời nhắc quyền riêng tư macOS hiển thị thay cho HVN Remote Hub. */
+"NSLocalNetworkUsageDescription" = "HVN Remote Hub kết nối thẳng tới máy tính trong mạng nội bộ khi cách này nhanh hơn qua máy chủ trung gian.";

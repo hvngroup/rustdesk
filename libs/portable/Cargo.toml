@@ -1,6 +1,6 @@
 [package]
 name = "rustdesk-portable-packer"
-version = "1.5.1"
+version = "2.0.0"
 edition = "2021"
 description = "RustDesk Remote Desktop"
 
@@ -27,10 +27,11 @@ windows = { version = "0.61", features = [
 native-windows-gui = {version = "1.0", default-features = false, features = ["animation-timer", "image-decoder"]}
 
 [package.metadata.winres]
-LegalCopyright = "Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved."
-ProductName = "RustDesk"
-OriginalFilename = "rustdesk.exe"
-FileDescription = "RustDesk Remote Desktop"
+LegalCopyright = "Copyright © 2026 HVN GROUP. Based on RustDesk, copyright © Purslane Tech Pte. Ltd. Licensed under AGPL-3.0."
+CompanyName = "HVN GROUP"
+ProductName = "HVN Remote Hub"
+OriginalFilename = "HVNRemoteHub.exe"
+FileDescription = "HVN Remote Hub"
 #ProductVersion = ""
 
 [target.'cfg(target_os="windows")'.build-dependencies]

@@ -21,6 +21,11 @@ const DISPLAY_NAME: &str = "HVN Remote Hub";
 /// HVN Remote Hub speaks Vietnamese unless the user picks another language.
 const LANGUAGE: &str = "vi";
 
+/// The version users see. `crate::VERSION` stays the RustDesk version this
+/// fork is built from, because peers and the server compare it to decide which
+/// protocol features the other side has.
+pub const VERSION: &str = "2.0.0";
+
 /// Runs after `load_custom_client`, so HVN's server wins over any other
 /// configuration and the user cannot point the app elsewhere.
 pub fn apply() {
@@ -80,6 +85,38 @@ mod tests {
             crate::lang::translate_locale("Settings".to_owned(), "en-US"),
             "Cài đặt"
         );
+    }
+
+    #[test]
+    fn packages_carry_the_hvn_version() {
+        // Line by line, because Windows checkouts may use CRLF.
+        let has_line = |text: &str, line: String| text.lines().any(|l| l.trim_end() == line);
+        let pubspec = include_str!("../flutter/pubspec.yaml");
+        assert!(pubspec
+            .lines()
+            .any(|l| l.starts_with(&format!("version: {VERSION}+"))));
+        let workflow = include_str!("../.github/workflows/flutter-build.yml");
+        assert!(has_line(workflow, format!("  VERSION: \"{VERSION}\"")));
+        for spec in [
+            include_str!("../res/rpm-flutter.spec"),
+            include_str!("../res/rpm-flutter-suse.spec"),
+        ] {
+            assert!(has_line(spec, format!("Version:    {VERSION}")));
+        }
+        assert!(has_line(
+            include_str!("../res/PKGBUILD"),
+            format!("pkgver={VERSION}")
+        ));
+        for appimage in [
+            include_str!("../appimage/AppImageBuilder-x86_64.yml"),
+            include_str!("../appimage/AppImageBuilder-aarch64.yml"),
+        ] {
+            assert!(has_line(appimage, format!("    version: {VERSION}")));
+        }
+        assert!(has_line(
+            include_str!("../libs/portable/Cargo.toml"),
+            format!("version = \"{VERSION}\"")
+        ));
     }
 
     #[test]
