@@ -1,5 +1,5 @@
 Name:       hvnremotehub
-Version:    1.5.1
+Version:    2.0.0
 Release:    0
 Summary:    HVN Remote Hub
 License:    GPL-3.0

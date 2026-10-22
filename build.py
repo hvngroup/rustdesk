@@ -63,6 +63,16 @@ def get_version():
     return ''
 
 
+def get_hvn_version():
+    # Packages carry the version users see; Cargo.toml keeps the RustDesk
+    # version that peers compare.
+    with open("src/hvn.rs", encoding="utf-8") as fh:
+        for line in fh:
+            if line.startswith("pub const VERSION: &str = "):
+                return line.split('"')[1]
+    return get_version()
+
+
 def parse_rc_features(feature):
     available_features = {}
     apply_features = {}
@@ -1019,7 +1029,7 @@ def main():
         os.unlink(exe_path)
     if os.path.isfile('/usr/bin/pacman'):
         system2('git checkout src/ui/common.tis')
-    version = get_version()
+    version = get_hvn_version()
     features = ','.join(get_features(args))
     flutter = args.flutter
     if not flutter:
