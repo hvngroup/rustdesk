@@ -5,10 +5,21 @@ Workflow `Flutter Tag Build` (`.github/workflows/flutter-tag.yml`) build mọi n
 
 ## Cách ra một bản
 
-1. Kiểm tra phiên bản. `VERSION` trong `.github/workflows/flutter-build.yml` phải trùng `version` trong `Cargo.toml`.
-   Đây là phiên bản RustDesk mà bản fork dựa trên. Máy hai đầu dùng số này để biết bên kia hỗ trợ tính năng nào, nên không đổi tuỳ ý.
-2. Đặt tag theo dạng `v<phiên bản>-<số bản HVN>`, ví dụ `v1.5.1-1`, rồi `v1.5.1-2` cho lần build lại trên cùng phiên bản đó.
-   Workflow chỉ nhận các dạng `1.5.1`, `v1.5.1`, `1.5.1-1` và `v1.5.1-1`.
+1. Kiểm tra phiên bản. App có hai số phiên bản:
+   - **Phiên bản HVN** (hiện là `2.0.0`): số người dùng thấy trong app, trong tên file tải về và trong thông tin gói cài đặt.
+     Khi lên phiên bản mới, đổi số này ở mọi nơi sau:
+     - `VERSION` trong `src/hvn.rs`;
+     - `version` trong `flutter/pubspec.yaml` (giữ phần `+<số build>` và tăng số build lên 1);
+     - `VERSION` trong `.github/workflows/flutter-build.yml`;
+     - `Version` trong `res/rpm*.spec`, `pkgver` trong `res/PKGBUILD`;
+     - `version` trong `appimage/AppImageBuilder-*.yml`;
+     - `version` trong `libs/portable/Cargo.toml`, rồi cập nhật dòng tương ứng trong `Cargo.lock`.
+
+     Test `hvn::tests::packages_carry_the_hvn_version` báo lỗi nếu sót chỗ nào.
+   - **Phiên bản giao thức** (`version` trong `Cargo.toml`, hiện là `1.5.1`): phiên bản RustDesk mà bản fork dựa trên. Hai máy
+     khi kết nối, và máy chủ, dùng số này để biết bên kia hỗ trợ tính năng nào. Chỉ đổi khi gộp code mới từ RustDesk.
+2. Đặt tag theo phiên bản HVN, ví dụ `v2.0.0`. Nếu cần build lại cùng phiên bản thì dùng `v2.0.0-1`, `v2.0.0-2`.
+   Workflow chỉ nhận các dạng `2.0.0`, `v2.0.0`, `2.0.0-1` và `v2.0.0-1`.
    Tag `mac-vX.Y.Z` thuộc về app Mac 1.x (Swift) trong `macos-native/`, xem [macos-native/docs/release.md](../macos-native/docs/release.md).
 3. Tạo Release trên GitHub với tag mới, target `master`. Workflow sẽ chạy khoảng 1 giờ rồi đính các file vào Release.
 4. Workflow đánh dấu Release là *Pre-release*. Sau khi kiểm tra file cài trên máy thật, bỏ dấu Pre-release để thành bản chính thức.
@@ -19,11 +30,11 @@ Mọi file tải về có dạng `HVNRemoteHub-<phiên bản>-<kiến trúc>.<đ
 
 | Nền tảng | File |
 |---|---|
-| Windows | `HVNRemoteHub-1.5.1-x86_64.exe` (chạy ngay hoặc cài), `HVNRemoteHub-1.5.1-x86_64.msi`, bản `aarch64` tương tự; `HVNRemoteHub-1.5.1-x86-sciter.exe` là bản 32-bit giao diện cũ (Sciter) |
-| macOS | `HVNRemoteHub-1.5.1-aarch64.dmg`, `HVNRemoteHub-1.5.1-x86_64.dmg` |
-| Android | `HVNRemoteHub-1.5.1-aarch64.apk`, `-armv7.apk`, `-x86_64.apk`, `-universal.apk` |
+| Windows | `HVNRemoteHub-2.0.0-x86_64.exe` (chạy ngay hoặc cài), `HVNRemoteHub-2.0.0-x86_64.msi`, bản `aarch64` tương tự; `HVNRemoteHub-2.0.0-x86-sciter.exe` là bản 32-bit giao diện cũ (Sciter) |
+| macOS | `HVNRemoteHub-2.0.0-aarch64.dmg`, `HVNRemoteHub-2.0.0-x86_64.dmg` |
+| Android | `HVNRemoteHub-2.0.0-aarch64.apk`, `-armv7.apk`, `-x86_64.apk`, `-universal.apk` |
 | Linux | `.deb`, `.rpm` (Fedora và `-suse`), `.pkg.tar.zst` (Arch), `.AppImage`, `.flatpak` |
-| Linux, bản cho Wayland không cần xác nhận | `hvnremotehub-unattended-wayland-1.5.1-x86_64.deb`, mang đúng tên gói người dùng đồng ý khi cài |
+| Linux, bản cho Wayland không cần xác nhận | `hvnremotehub-unattended-wayland-2.0.0-x86_64.deb`, mang đúng tên gói người dùng đồng ý khi cài |
 
 Kèm theo là `HVNRemoteHub.sbom.json` (danh sách thành phần phần mềm) và mã nguồn GitHub tự tạo, đáp ứng AGPL-3.0.
 

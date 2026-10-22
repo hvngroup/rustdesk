@@ -5,12 +5,12 @@ Repo `hvngroup/universal-remote-hub` chứa cả hai thế hệ của HVN Remote
 | | HVN Remote Hub 2.0 | HVN Remote Hub for Mac 1.x |
 |---|---|---|
 | Thư mục | Gốc repo (`src/`, `libs/`, `flutter/`, …) | `macos-native/` |
-| Nguồn gốc | Fork của RustDesk 1.5.1 | MacViewer (MIT) và phần HVN viết thêm |
+| Nguồn gốc | Fork của RustDesk 1.5.1 (phiên bản hiển thị: 2.0.0) | MacViewer (MIT) và phần HVN viết thêm |
 | Kết nối tới | Máy chạy HVN Remote Hub qua máy chủ `connect.hvn.vn` | Máy chạy UltraViewer |
 | Nền tảng | Windows, macOS, Linux, Android, iOS | macOS 14 trở lên |
 | Công nghệ | Lõi Rust + giao diện Flutter | Swift 6, SwiftUI + AppKit, engine Swift/C |
 | Giấy phép | AGPL-3.0 (`LICENCE`) | MIT (`macos-native/LICENSE`) |
-| Tag phát hành | `v1.5.1-1`, `v1.5.1-2`, … | `mac-v1.0.2`, … |
+| Tag phát hành | `v2.0.0`, `v2.0.0-1`, … | `mac-v1.0.2`, … |
 | Hướng dẫn phát hành | [docs/HVN-RELEASE.md](HVN-RELEASE.md) | [macos-native/docs/release.md](../macos-native/docs/release.md) |
 
 Theo kế hoạch 2.0 ([macos-native/plans/261020-1227-hvn-protocol-multiplatform](../macos-native/plans/261020-1227-hvn-protocol-multiplatform/plan.md), hướng A1), bản Flutter 2.0 sẽ là HVN Remote Hub trên mọi nền tảng. App Swift sẽ thu về thành mô-đun UltraViewer chỉ dùng trên macOS. Mã MIT gộp được vào dự án AGPL; chiều ngược lại thì không.
@@ -30,7 +30,7 @@ universal-remote-hub/
 ├── docs/                   Tài liệu (HVN-*.md là của HVN, phần còn lại của RustDesk)
 ├── .github/workflows/      CI/CD cho cả hai app
 ├── build.py  build.rs      Script build của RustDesk (Python) và build script của Cargo
-├── Cargo.toml  Cargo.lock  Workspace Rust; version = 1.5.1
+├── Cargo.toml  Cargo.lock  Workspace Rust; version = 1.5.1 (phiên bản giao thức, không phải số người dùng thấy)
 ├── vcpkg.json              Thư viện C/C++ (libvpx, libyuv, opus, aom) cài qua vcpkg
 ├── AGENTS.md  CLAUDE.md    Quy tắc viết mã cho người và agent
 └── LICENCE                 AGPL-3.0
@@ -43,7 +43,7 @@ universal-remote-hub/
 | Đường dẫn | Vai trò |
 |---|---|
 | `main.rs`, `core_main.rs` | Điểm vào: đọc tham số dòng lệnh (`--server`, `--service`, `--install`, …), khởi động đúng tiến trình |
-| `hvn.rs` | **Danh tính HVN**: tên nội bộ `HVNRemoteHub`, tên hiển thị "HVN Remote Hub", máy chủ `connect.hvn.vn` và khoá công khai của máy chủ (đổi lúc build bằng biến `HVN_RENDEZVOUS_SERVER` và `HVN_RS_PUB_KEY`), tiếng Việt mặc định. `apply()` chạy lúc khởi động |
+| `hvn.rs` | **Danh tính HVN**: tên nội bộ `HVNRemoteHub`, tên hiển thị "HVN Remote Hub", máy chủ `connect.hvn.vn` và khoá công khai của máy chủ (đổi lúc build bằng biến `HVN_RENDEZVOUS_SERVER` và `HVN_RS_PUB_KEY`), tiếng Việt mặc định, phiên bản hiển thị `VERSION` (2.0.0). `apply()` chạy lúc khởi động |
 | `flutter_ffi.rs`, `flutter.rs` | Cầu nối Rust ↔ Dart. Các hàm `main_*`/`session_*` là API mà giao diện gọi |
 | `ui_interface.rs`, `ui_session_interface.rs`, `ui_cm_interface.rs` | Logic dùng chung cho giao diện: cài đặt, phiên điều khiển, cửa sổ quản lý kết nối |
 | `client.rs`, `client/` | Phía điều khiển: kết nối, giải mã video, gửi chuột và bàn phím, truyền file |
@@ -121,7 +121,7 @@ macos-native/
 |---|---|---|
 | `ci.yml` | PR và push lên `master` (bỏ qua `macos-native/**`) | Build và chạy test Rust (`cargo test`) trên Linux |
 | `flutter-ci.yml` | PR và push lên `master` (bỏ qua `macos-native/**`) | Gọi `flutter-build.yml` để build đủ nền tảng, không phát hành |
-| `flutter-tag.yml` | Tag `v1.5.1-N` | Build và đính `HVNRemoteHub-<phiên bản>-<kiến trúc>.*` vào Release (Pre-release) |
+| `flutter-tag.yml` | Tag `v2.0.0` (hoặc `v2.0.0-N`) | Build và đính `HVNRemoteHub-<phiên bản>-<kiến trúc>.*` vào Release (Pre-release) |
 | `flutter-nightly.yml` | Hằng ngày (cần bật trong tab Actions) hoặc chạy tay | Build vào tag `nightly` |
 | `flutter-build.yml` | Được 3 workflow trên gọi | Build Windows, macOS, Linux, Android; iOS, AppImage, Flatpak chỉ build khi phát hành, và file IPA của iOS chưa được đăng |
 | `macos-native.yml` | PR/push chạm `macos-native/**`, tag `mac-v*`, chạy tay | Test Swift, đóng gói, ký Developer ID và notarize, đính DMG/zip vào Release "HVN Remote Hub for Mac X.Y.Z" |
@@ -140,6 +140,6 @@ App 2.0 kết nối tới `connect.hvn.vn`, gồm `hbbs` để đăng ký ID và
 
 ## Lưu ý đã biết
 
-- **Hai app Mac trùng bundle ID `vn.hvn.remotehub`.** Bản 1.x ("HVN Remote Hub.app") và bản 2.0 ("HVNRemoteHub.app") dùng chung cài đặt và chung quyền Ghi màn hình/Trợ năng, và macOS coi chúng là một app. Cần đổi bundle ID của một trong hai trước khi phát hành bản 2.0 cho macOS.
+- **Hai app Mac trùng bundle ID `vn.hvn.remotehub`.** Bản 1.x ("HVN Remote Hub.app") và bản 2.0 ("HVNRemoteHub.app") dùng chung cài đặt và quyền Ghi màn hình/Trợ năng, nên không nên cài cả hai trên một máy. Chủ sản phẩm chấp nhận điều này vì bản 1.x chưa có người dùng.
 - Trang Giới thiệu, chính sách quyền riêng tư và metadata F-Droid trong app 2.0 vẫn trỏ về RustDesk.
 - App 2.0 không tự cập nhật. Muốn có, cần dựng dịch vụ phiên bản và khoá ký riêng của HVN.
